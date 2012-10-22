@@ -156,6 +156,8 @@ static std::string DexpToSexp(const std::string &exp)
     return sexp;
 }
 
+//this function should return Node, copy constructor will not be called,
+//cause g++ optimization  
 Node SexpToEtree(const std::string exp) 
 {
     std::stack<NodeBase *> stk;
