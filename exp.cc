@@ -4,41 +4,91 @@
 #include <cctype>
 #include <cassert>
 
-class Node {
+class NodeBase {
 public:
     virtual int caculate() const = 0;
-    virtual ~Node() {}
+    virtual ~NodeBase() {}
 };
 
-class NumberNode:public Node {
+class Node {
 public:
-    NumberNode(int num): number_(num) {}
+    Node(NodeBase *p): node_(p), use_(new int(1)) {
+        std::cout << "call default constructor of Node" << std::endl;
+    }
+
+    Node(const Node& n) {
+        std::cout << "call copy constructor of Node" << std::endl;
+        node_ = n.node_;
+        use_ = n.use_;
+        ++*use_;
+    } 
+
+    Node& operator=(const Node& rhs) {
+        std::cout << "call operator= of Node" << std::endl;
+        DecrUse();
+        node_ = rhs.node_;
+        use_ = rhs.use_;
+        ++*use_;
+    }
+
     int caculate() const {
-        //std::cout << "call NumberNode" << std::endl;
+        return node_->caculate();
+    }
+
+    ~Node() {
+        std::cout << "call destructor of Node" << std::endl;
+        std::cout << "use" << *use_ << std::endl;
+        DecrUse();
+    }
+private:
+    NodeBase *node_;
+    int *use_;
+
+    void DecrUse() {
+        if (--*use_ == 0) {
+            std::cout << "call delete in DecrUse" << std::endl;
+            delete use_;
+            delete node_;
+        }
+    }
+};
+
+class NumberNode:public NodeBase {
+public:
+    NumberNode(int num): number_(num) {
+        std::cout << "call constructor of NumberNode " << number_ << std::endl;
+    }
+    int caculate() const {
+        std::cout << "call NumberNode caculate" << std::endl;
         return number_;
+    }
+
+    ~NumberNode() {
+        std::cout << "call destructor of NumberNode " << number_ << std::endl;
     }
 
 private:
     int number_;
-    class Node* left_;
-    class Node* right_;
 };
 
-class BinaryNode:public Node {
+class BinaryNode:public NodeBase {
 public:
-    //int caculate() const {
-        //return number_;
-    //}
 //protected:
-    //class NumberNode* left_;
-    //class NumberNode* right_;
-    class Node* left_;
-    class Node* right_;
+    class NodeBase* left_;
+    class NodeBase* right_;
 };
 
 class AddNode:public BinaryNode {
 public:
+    AddNode() {
+        std::cout << "call constructor of AddNode" << std::endl;
+    }
+    ~AddNode() {
+        std::cout << "call destructor of AddNode" << std::endl;
+    }
+
     int caculate() const {
+        std::cout << "call AddNode caculate" << std::endl;
         return left_->caculate() + right_->caculate();
     }
 };
@@ -106,14 +156,14 @@ static std::string DexpToSexp(const std::string &exp)
     return sexp;
 }
 
-Node* SexpToEtree(const std::string exp) 
+Node SexpToEtree(const std::string exp) 
 {
-    std::stack<Node *> stk;
+    std::stack<NodeBase *> stk;
     std::string::const_iterator it = exp.begin();
 
     while (it != exp.end()) {
         if (isdigit(*it)) {
-            Node *node = new NumberNode(*it - '0');
+            NodeBase *node = new NumberNode(*it - '0');
             stk.push(node);
             //std::cout << "SexpToEtree push\t" << *it - '0' << std::endl;
         } else if (*it == '+') {
@@ -137,7 +187,10 @@ Node* SexpToEtree(const std::string exp)
     }
 
     //std::cout << "SexpToEtree pop end" << std::endl;
-    return stk.top();
+
+    Node node(stk.top());
+    return node;
+    //return *(new Node(stk.top()));
 }
 
 int main(int argc, const char *argv[])
@@ -156,28 +209,37 @@ int main(int argc, const char *argv[])
 
     //std::cout << suffix_exp << std::endl;
 
-    Node *root = SexpToEtree("2");
-    assert (root->caculate() == 2);
+    //NodeBase *root = SexpToEtree("2");
+    //assert (root->caculate() == 2);
+
+    //Node root = SexpToEtree("2");
+    //assert (root.caculate() == 2);
+    //std::cout << "next" << std::endl;
+
+    //root = SexpToEtree("4");
+    //assert (root.caculate() == 4);
+
+    Node root = SexpToEtree("34+");
+    assert (root.caculate() == 7);
+    //std::cout << "next" << std::endl;
+
+    //assert (root->caculate() == 6);
     //std::cout << root->caculate() << std::endl;
 
-    root = SexpToEtree("24+");
-    assert (root->caculate() == 6);
+    //root = SexpToEtree("245++");
+    //assert (root->caculate() == 11);
     //std::cout << root->caculate() << std::endl;
 
-    root = SexpToEtree("245++");
-    assert (root->caculate() == 11);
+    //root = SexpToEtree("245+*");
+    //assert (root->caculate() == 18);
     //std::cout << root->caculate() << std::endl;
 
-    root = SexpToEtree("245+*");
-    assert (root->caculate() == 18);
+    //root = SexpToEtree(DexpToSexp("2+4*5"));
+    //assert (root->caculate() == 22);
     //std::cout << root->caculate() << std::endl;
 
-    root = SexpToEtree(DexpToSexp("2+4*5"));
-    assert (root->caculate() == 22);
-    //std::cout << root->caculate() << std::endl;
-
-    root = SexpToEtree(DexpToSexp("2*4+5"));
-    assert (root->caculate() == 13);
+    //root = SexpToEtree(DexpToSexp("2*4+5"));
+    //assert (root->caculate() == 13);
     //std::cout << root->caculate() << std::endl;
     return 0;
 }
