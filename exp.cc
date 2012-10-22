@@ -7,7 +7,9 @@
 class NodeBase {
 public:
     virtual int caculate() const = 0;
-    virtual ~NodeBase() {}
+    virtual ~NodeBase() {
+        std::cout << "call destructor of NodeBase" << std::endl;
+    }
 };
 
 class Node {
@@ -84,6 +86,8 @@ public:
         std::cout << "call constructor of AddNode" << std::endl;
     }
     ~AddNode() {
+        delete left_;
+        delete right_;
         std::cout << "call destructor of AddNode" << std::endl;
     }
 
@@ -95,7 +99,17 @@ public:
 
 class MultiNode:public BinaryNode {
 public:
+    MultiNode() {
+        std::cout << "call constructor of MultiNode" << std::endl;
+    }
+    ~MultiNode() {
+        delete left_;
+        delete right_;
+        std::cout << "call destructor of MultiNode" << std::endl;
+    }
+
     int caculate() const {
+        std::cout << "call MultiNode caculate" << std::endl;
         return left_->caculate() * right_->caculate();
     }
 };
@@ -156,8 +170,8 @@ static std::string DexpToSexp(const std::string &exp)
     return sexp;
 }
 
-//this function should return Node, copy constructor will not be called,
-//cause g++ optimization  
+//this function should return Node, see effective c++ item 21. 
+//copy constructor will not be called, cause g++ optimization  
 Node SexpToEtree(const std::string exp) 
 {
     std::stack<NodeBase *> stk;
@@ -240,8 +254,8 @@ int main(int argc, const char *argv[])
     //assert (root->caculate() == 22);
     //std::cout << root->caculate() << std::endl;
 
-    //root = SexpToEtree(DexpToSexp("2*4+5"));
-    //assert (root->caculate() == 13);
+    root = SexpToEtree(DexpToSexp("2*4+5"));
+    assert (root.caculate() == 13);
     //std::cout << root->caculate() << std::endl;
     return 0;
 }
