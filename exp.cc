@@ -75,6 +75,12 @@ private:
 
 class BinaryNode:public NodeBase {
 public:
+    ~BinaryNode() {
+        delete left_;
+        delete right_;
+        std::cout << "call destructor of BinaryNode" << std::endl;
+    }
+
 //protected:
     class NodeBase* left_;
     class NodeBase* right_;
@@ -84,11 +90,6 @@ class AddNode:public BinaryNode {
 public:
     AddNode() {
         std::cout << "call constructor of AddNode" << std::endl;
-    }
-    ~AddNode() {
-        delete left_;
-        delete right_;
-        std::cout << "call destructor of AddNode" << std::endl;
     }
 
     int caculate() const {
@@ -101,11 +102,6 @@ class MultiNode:public BinaryNode {
 public:
     MultiNode() {
         std::cout << "call constructor of MultiNode" << std::endl;
-    }
-    ~MultiNode() {
-        delete left_;
-        delete right_;
-        std::cout << "call destructor of MultiNode" << std::endl;
     }
 
     int caculate() const {
@@ -166,7 +162,6 @@ static std::string DexpToSexp(const std::string &exp)
         stk.pop();
     }
 
-    //std::cout << sexp << std::endl;
     return sexp;
 }
 
@@ -202,11 +197,9 @@ Node SexpToEtree(const std::string exp)
         it++;
     }
 
-    //std::cout << "SexpToEtree pop end" << std::endl;
 
     Node node(stk.top());
     return node;
-    //return *(new Node(stk.top()));
 }
 
 int main(int argc, const char *argv[])
@@ -254,8 +247,8 @@ int main(int argc, const char *argv[])
     //assert (root->caculate() == 22);
     //std::cout << root->caculate() << std::endl;
 
-    root = SexpToEtree(DexpToSexp("2*4+5"));
-    assert (root.caculate() == 13);
+    //root = SexpToEtree(DexpToSexp("2*4+5"));
+    //assert (root.caculate() == 13);
     //std::cout << root->caculate() << std::endl;
     return 0;
 }
